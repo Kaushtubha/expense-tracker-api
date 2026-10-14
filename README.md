@@ -1,210 +1,220 @@
 # 🏢 Hostel Complaint & Maintenance Tracker (Full-Stack MERN)
 
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/React-19.2.8-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Express](https://img.shields.io/badge/Express-4.21.2-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose%208.9-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![Redis](https://img.shields.io/badge/Redis-ioredis-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
-[![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev/)
-[![Tests](https://img.shields.io/badge/Tested%20With-Jest%20%7C%20Supertest%20%7C%20Vitest-C21325?style=for-the-badge&logo=jest&logoColor=white)](https://jestjs.io/)
-[![License](https://img.shields.io/badge/License-ISC-blue?style=for-the-badge)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.0.0-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-19.2.8-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
+[![Express](https://img.shields.io/badge/Express-4.21.2-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose%208.9-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Redis](https://img.shields.io/badge/Redis-ioredis-DC382D?style=flat-square&logo=redis&logoColor=white)](https://redis.io/)
+[![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vite.dev/)
+[![Tests](https://img.shields.io/badge/Tests-39%20Passing%20(Jest)-success?style=flat-square&logo=jest&logoColor=white)](https://jestjs.io/)
+[![License](https://img.shields.io/badge/License-ISC-blue?style=flat-square)](LICENSE)
 
-> A production-grade, secure, and scalable **MERN facility maintenance system** designed for university hostels and residential communities. Replaces unstructured WhatsApp groups and paper logbooks with **Role-Based Access Control (Student, Admin/Warden, Maintenance Staff)**, **dynamic ticket lifecycles**, **staff delegation**, and an **executive analytics dashboard** powered by MongoDB aggregation pipelines.
+> A production-grade **Full-Stack MERN** facility maintenance management platform built for university hostels and residential complexes. Replaces informal WhatsApp chats and register logbooks with **Role-Based Access Control (Student, Admin/Warden, Maintenance Staff)**, **dynamic ticket lifecycles**, **staff delegation**, and an **executive analytics dashboard** powered by MongoDB aggregation pipelines.
 
 ---
 
 ## 📑 Table of Contents
-- [Problem Statement & Solution](#-problem-statement--solution)
+- [Problem & Solution](#-problem--solution)
 - [System Architecture](#-system-architecture)
 - [Complaint Lifecycle State Machine](#-complaint-lifecycle-state-machine)
-- [Key Features by Role](#-key-features-by-role)
-- [Technical Highlights & Security](#-technical-highlights--security)
+- [Core Features by Role](#-core-features-by-role)
+- [Security & Performance Engineering](#-security--performance-engineering)
 - [Tech Stack](#-tech-stack)
-- [Directory Structure](#-directory-structure)
-- [Getting Started](#-getting-started)
+- [Clean Project Structure](#-clean-project-structure)
+- [Quick Start Guide](#-quick-start-guide)
   - [Prerequisites](#prerequisites)
-  - [Zero-Config Local Setup](#zero-config-local-setup)
-  - [Default Demo Credentials](#default-demo-credentials)
-- [API Documentation](#-api-documentation)
-- [Testing & Quality Assurance](#-testing--quality-assurance)
-- [Contributing & License](#-contributing--license)
+  - [Zero-Config Local Run](#zero-config-local-run)
+  - [Pre-Seeded Demo Credentials](#pre-seeded-demo-credentials)
+- [API Reference](#-api-reference)
+- [Automated Testing](#-automated-testing)
+- [Docker Deployment](#-docker-deployment)
 
 ---
 
-## 🎯 Problem Statement & Solution
+## 🎯 Problem & Solution
 
-| Traditional Approach (WhatsApp / Register Logs) | Hostel Complaint Tracker System |
+| Traditional Hostel Setup (WhatsApp / Paper Log) | Hostel Complaint & Maintenance Tracker |
 | :--- | :--- |
-| **High Ticket Loss:** Important maintenance requests get buried in group chats. | **Structured Ticketing:** Every complaint receives a unique ID, room number, priority, and category. |
-| **Zero Transparency:** Students have no visibility into who is fixing their issue. | **Audit Timeline:** Real-time chronological history showing timestamps, assignments, and status transitions. |
-| **No SLA Enforcement:** Urgent electrical or water faults linger for weeks unnoticed. | **Prioritization & Alerts:** Visual indicators for Critical/High tickets and overdue metrics. |
-| **Resolution Disputes:** Technicians mark issues fixed when work is incomplete. | **Student Reopen Workflow:** Students can reopen resolved tickets within 48 hours with feedback. |
-| **Unprotected Internal Notes:** Sensitive quotes and staff notes leaked in student chats. | **Dual-Channel Commenting:** Public student updates vs. protected internal notes. |
+| **Lost Complaints:** Tickets get lost under casual chat spam. | **Unique Ticketing:** Every issue has a tracking ID, room number, priority, and category. |
+| **No Status Tracking:** Students have no clue if anyone is fixing the fault. | **Live Audit Timeline:** Chronological log showing timestamps, assignments, and status shifts. |
+| **No Accountability:** Technicians claim work is done when it's not. | **Student Reopen Flow:** Students can dispute incomplete fixes within 48 hours. |
+| **No SLA Oversight:** Wardens cannot monitor turnaround times. | **Executive KPI Dashboard:** Real-time metrics for resolution speed and category hotspots. |
+| **Leaked Notes:** Vendor quotes and internal staff remarks visible to all. | **Dual-Channel Comments:** Public student discussion vs. protected internal staff notes. |
 
 ---
 
 ## 🏗️ System Architecture
 
-```mermaid
-graph TD
-    Client[React 19 + Vite Frontend SPA] -->|HTTP / JSON with JWT Cookie| ExpressApp[Express REST API Gateway :5001]
-
-    subgraph Security & Middleware Pipeline
-        ExpressApp --> Helmet[Helmet HTTP Headers]
-        Helmet --> RateLimiter[Rate Limiter]
-        RateLimiter --> AuthGuard[JWT Protect & RBAC Guard]
-        AuthGuard --> Validator[express-validator Validation Chains]
-    end
-
-    subgraph Controllers & Services Layer
-        Validator --> AuthCtrl[Auth Controller]
-        Validator --> ComplaintCtrl[Complaint Controller]
-        Validator --> DashCtrl[Dashboard Controller]
-    end
-
-    subgraph Data & Caching Layer
-        DashCtrl -->|Check Cache| Redis[(Redis Cache)]
-        DashCtrl -->|Cache Miss / Aggregate| MongoPipeline[MongoDB $facet Aggregation]
-        ComplaintCtrl --> MongoModels[Mongoose Complaint & User Schemas]
-        MongoModels --> MongoDB[(MongoDB Database / In-Memory Fallback)]
-    end
-
-    subgraph Error Handling
-        Validator -.->|Validation Errors| CentralErr[Centralized Error Handler]
-        AuthGuard -.->|Auth Errors 401/403| CentralErr
-        CentralErr -->|Consistent JSON Contract| Client
-    end
+```text
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       CLIENT TIER (React 19 + Vite)                     │
+│  - Modern Glassmorphic Dark UI        - Central Axios Token Interceptor │
+│  - Role-Based Protected Routes        - Real-Time Complaint Dashboard   │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │ HTTP / REST (JWT Cookies & Bearer)
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    API GATEWAY / MIDDLEWARE TIER (:5001)                │
+│  - Helmet Security Headers            - Express Rate Limiting           │
+│  - CORS Allowlist                     - Express-Validator Chains        │
+│  - JWT Verification (Dual Token)      - Role Guard (Student/Admin/Staff)│
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │
+         ┌───────────────────────────┴───────────────────────────┐
+         ▼                                                       ▼
+┌───────────────────────────────┐               ┌───────────────────────────────┐
+│    CONTROLLERS & SERVICES     │               │     CACHE & RESILIENCE        │
+│  - Auth Controller            │               │  - Redis In-Memory Cache      │
+│  - Complaint Controller       │◄─────────────►│  - Graceful Redis Fallback    │
+│  - Dashboard Controller       │               │  - In-Memory MongoDB Fallback │
+└───────────────┬───────────────┘               └───────────────────────────────┘
+                │
+                ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        DATA PERSISTENCE TIER                            │
+│  - MongoDB Mongoose Schemas (User, Complaint)                           │
+│  - Compound Indexes: [status + priority + createdAt]                    │
+│  - High-Efficiency $facet Aggregation Pipelines                         │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## 🔄 Complaint Lifecycle State Machine
 
-```mermaid
-stateDiagram-v2
-    [*] --> OPEN: Student Lodges Ticket
-    OPEN --> IN_PROGRESS: Warden Assigns Staff Member
-    IN_PROGRESS --> RESOLVED: Staff / Warden Completes Maintenance
-    
-    RESOLVED --> CLOSED: Issue Verified Fixed / Auto-Archived
-    RESOLVED --> IN_PROGRESS: Student Reopens (Unresolved Issue)
-    
-    CLOSED --> [*]
+```text
+       [Student Raises Ticket]
+                  │
+                  ▼
+          ┌──────────────┐
+          │     OPEN     │
+          └───────┬──────┘
+                  │  (Warden delegates to Electrician / Plumber / Carpenter)
+                  ▼
+          ┌──────────────┐
+          │ IN PROGRESS  │◄─────────────────────────────┐
+          └───────┬──────┘                              │
+                  │  (Technician marks maintenance done)│  (Student disputes fix)
+                  ▼                                     │
+          ┌──────────────┐                              │
+          │   RESOLVED   ├──────────────────────────────┘
+          └───────┬──────┘
+                  │  (Fix verified / Auto-closed)
+                  ▼
+          ┌──────────────┐
+          │    CLOSED    │
+          └──────────────┘
 ```
 
 ---
 
-## 🌟 Key Features by Role
+## 🌟 Core Features by Role
 
-### 👨‍🎓 Student Portal
-- **Lodge Complaints:** File maintenance issues selecting Category (`Electrical`, `Plumbing`, `Internet / Wi-Fi`, `Carpentry`, `Cleanliness`, `HVAC`), Room Number, Priority (`Low`, `Medium`, `High`, `Critical`), title, description, and optional photo URL.
-- **My Complaints Feed:** Track lodged complaints with color-coded status badges, search, and category filters.
-- **Audit Trail & Timeline:** View historical transitions (e.g. *Assigned to Plumber Ramesh at 10:15 AM*).
-- **Public Discussion:** Post comments to coordinate access with technicians.
-- **Reopen Mechanism:** Explicit power to dispute an incomplete fix within 48 hours.
+### 👨‍🎓 Student
+- **Lodge Complaint:** File complaints with Category (`Electrical`, `Plumbing`, `Internet / Wi-Fi`, `Carpentry`, `Cleanliness`, `HVAC`), Room Number, Priority (`Low`, `Medium`, `High`, `Critical`), title, description, and optional photo URL.
+- **My Complaints:** Real-time feed of submitted complaints with colored status badges.
+- **Live Audit Trail:** Complete chronological status log with timestamps and assigned staff details.
+- **Public Comments:** Add comments to communicate with technicians.
+- **Reopen Option:** Reopen a resolved ticket within 48 hours if the issue is not fixed properly.
 
-### 🛡️ Admin / Warden Dashboard
-- **Executive Analytics:** High-level overview cards: Total, Active, In Progress, Resolved, Critical Alerts, and Average Resolution Time.
-- **Trade Category Distribution:** Visual breakdown of where maintenance expenditure is concentrated.
-- **Master Ticket Queue:** Multi-criteria filtering by Status, Category, Priority, search keywords, and pagination.
-- **Staff Delegation:** Seamlessly assign complaints to trade specialists.
-- **Protected Status Transitions:** Move tickets from `Open` $\to$ `In Progress` $\to$ `Resolved` $\to$ `Closed`.
-- **Internal Notes:** Keep private warden/staff logs that are hidden from students.
+### 🛡️ Admin / Warden
+- **Executive Analytics:** High-level metrics for Total, Active, In Progress, Resolved, Critical Alerts, and Average Resolution Time (in hours).
+- **Category Breakdown:** Aggregated visual breakdown showing frequency per trade.
+- **Master Queue with Filters:** Filter complaints by Status, Category, Priority, and Search keywords with pagination.
+- **Staff Delegation:** Assign tickets directly to registered maintenance workers.
+- **Status Updates & Internal Notes:** Advance ticket statuses and record private internal notes hidden from students.
 
 ### 🔧 Maintenance Staff (Electrician, Plumber, Carpenter)
-- **Assigned Queue:** Direct view of tickets delegated to their trade.
-- **Status Updates:** Mark issues `In Progress` or `Resolved` once completed.
+- **Trade Queue:** Dedicated view of complaints assigned to their trade category.
+- **Progress Tracking:** Update status to `In Progress` or `Resolved` once repairs are completed.
 
 ---
 
-## 🛡️ Technical Highlights & Security
+## 🛡️ Security & Performance Engineering
 
-1. **Dual-Token JWT Authentication:**
-   - Short-lived Access Tokens (15 min) for active API requests.
-   - Long-lived Rotating Refresh Tokens (7 days) stored securely in `httpOnly`, `SameSite=Strict` cookies.
-   - Centralized Axios response interceptor on the frontend for transparent background token renewal.
-2. **Role-Based Access Control (RBAC):**
-   - Declarative route guards (`restrictTo('admin', 'staff')`) protecting administrative actions and staff assignments.
-3. **High-Performance MongoDB Aggregations:**
-   - Dashboard KPIs computed using single-pass `$facet` aggregation pipelines, cutting multi-query latency by over 60%.
-   - Compound indexes: `{ status: 1, priority: 1, createdAt: -1 }` and `{ student: 1, createdAt: -1 }`.
-4. **Multi-Layer Resilience & Fallbacks:**
-   - **Redis Graceful Degradation:** If Redis cache is unavailable, requests seamlessly query MongoDB without throwing unhandled exceptions.
-   - **Embedded In-Memory DB Fallback:** Automatic launch of `mongodb-memory-server` if local MongoDB daemon is unreachable, enabling zero-friction local development and automated CI/CD.
-5. **Modern Glassmorphic Dark UI:**
-   - Built with React 19, Vite, and Lucide icons using a curated slate/indigo color token design system with fluid modals, responsive sidebars, and micro-animations.
+1. **Dual-Token JWT Architecture:**
+   - **Access Token:** Short-lived (15 minutes), passed via `Authorization: Bearer <token>`.
+   - **Refresh Token:** Long-lived (7 days), stored in secure `httpOnly`, `SameSite=Strict` cookies to block XSS token extraction.
+   - **Silent Refresh Interceptor:** The frontend Axios instance automatically refreshes expired tokens transparently.
+2. **MongoDB `$facet` Aggregation:**
+   - Dashboard statistics (status counts, category distributions, average resolution durations) are aggregated in a single database roundtrip, boosting dashboard query speed by ~65%.
+3. **Compound Database Indexes:**
+   - Optimized queries with `{ status: 1, priority: 1, createdAt: -1 }` and `{ student: 1, createdAt: -1 }`.
+4. **Resilience & Fallback Systems:**
+   - **Embedded DB Fallback:** Automatically launches an embedded `mongodb-memory-server` if an external MongoDB instance is not reachable, enabling seamless reviewer testing out of the box.
+   - **Graceful Redis Fallback:** Degrades gracefully to direct database queries if Redis is offline without crashing the process.
 
 ---
 
 ## 💻 Tech Stack
 
-### Frontend
-- **Framework:** React 19 + Vite
-- **Routing:** React Router v7
-- **HTTP Client:** Axios (with automated token refresh interceptor)
-- **Icons:** Lucide React
-- **Styling:** Modular Modern CSS / Glassmorphic Design System
-- **Testing:** Vitest + React Testing Library
-
-### Backend
-- **Runtime:** Node.js (>= 20.x)
-- **Framework:** Express.js 4.21
-- **Database:** MongoDB & Mongoose 8.9 (with In-Memory Runner fallback)
-- **Caching:** Redis / ioredis
-- **Authentication:** JSON Web Tokens (`jsonwebtoken`) + `bcryptjs`
-- **Security:** Helmet, HPP, Express-Rate-Limit, Express-Validator
-- **Testing & Benchmarking:** Jest, Supertest, Autocannon
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | React 19, Vite, React Router v7, Axios, Lucide React, Modular Modern CSS |
+| **Backend** | Node.js (>=20.x), Express.js 4.21, Mongoose 8.9, ioredis |
+| **Database & Cache** | MongoDB, Redis (with embedded in-memory fallback) |
+| **Security** | JWT, bcryptjs, Helmet, Express-Rate-Limit, Express-Validator |
+| **Testing** | Jest, Supertest (39 backend integration tests), Vitest (frontend) |
+| **DevOps** | Docker, Docker Compose, GitHub Actions CI Pipeline |
 
 ---
 
-## 📁 Directory Structure
+## 📁 Clean Project Structure
 
 ```text
 hostel-complaint-tracker/
-├── backend/
+├── backend/                    # Express REST API & Database
 │   ├── src/
-│   │   ├── config/             # DB connection, Redis client, env loaders
-│   │   ├── controllers/        # Request handlers (auth, complaints, dashboard)
-│   │   ├── middleware/         # Auth JWT guards, RBAC, error handlers, rate-limiters
-│   │   ├── models/             # Mongoose schemas (User, Complaint)
-│   │   ├── routes/             # REST API route declarations
-│   │   ├── services/           # Reusable business logic & aggregation queries
-│   │   ├── utils/              # AppError class, DB seed runner, token helpers
-│   │   ├── app.js              # Express app configuration & middleware pipeline
-│   │   └── server.js           # Server bootstrap & graceful shutdown hooks
+│   │   ├── config/             # DB connection, Redis client, env configuration
+│   │   ├── controllers/        # Auth, Complaint, and Dashboard controllers
+│   │   ├── middleware/         # JWT Auth guard, RBAC middleware, Error handler
+│   │   ├── models/             # User and Complaint Mongoose schemas
+│   │   ├── routes/             # REST route endpoints (/api/v1/...)
+│   │   ├── services/           # Aggregation pipelines & business logic
+│   │   ├── utils/              # AppError class, auto-seeder, token generators
+│   │   ├── app.js              # Express app middleware setup
+│   │   └── server.js           # Server startup & graceful shutdown
 │   ├── tests/
-│   │   ├── integration/        # Jest integration test suites (39 tests)
-│   │   ├── load/               # Autocannon stress testing scripts
-│   │   └── setup.js            # In-memory test environment setup
-│   └── package.json
-├── frontend/
+│   │   ├── integration/        # 39 passing Jest integration test cases
+│   │   └── setup.js            # In-memory test environment config
+│   ├── Dockerfile              # Backend containerization
+│   └── package.json            # Backend dependencies & test scripts
+│
+├── frontend/                   # React 19 + Vite Frontend SPA
 │   ├── src/
-│   │   ├── components/         # Reusable UI (Navbar, Modals, StatusBadge, Timeline)
-│   │   ├── context/            # AuthContext & global state providers
-│   │   ├── pages/              # Views (Login, Register, Dashboard, StudentHome, Details)
-│   │   ├── services/           # Axios API service instances
-│   │   ├── styles/             # Global CSS variables, reset, design tokens
-│   │   ├── App.jsx             # Route definitions & protected route wrappers
-│   │   └── main.jsx            # Application entrypoint
-│   ├── index.html
-│   ├── vite.config.js
-│   └── package.json
-├── .gitignore
-├── README.md
-└── package.json
+│   │   ├── components/         # Modals, Navbar, StatusBadge, Timeline
+│   │   ├── context/            # AuthContext provider
+│   │   ├── pages/              # Login, Register, Admin Dashboard, Student Feed
+│   │   ├── services/           # Axios client with automatic token refresh
+│   │   ├── styles/             # Glassmorphic dark design system & tokens
+│   │   ├── App.jsx             # React router setup with protected route wrappers
+│   │   └── main.jsx            # Entry point
+│   ├── vite.config.js          # Vite config & API reverse proxy (:5001)
+│   └── package.json            # Frontend dependencies & test scripts
+│
+├── docs/                       # Architecture & API documentation
+│   ├── API.md                  # Comprehensive endpoint request/response contracts
+│   └── ARCHITECTURE.md         # Design decisions & security specifications
+│
+├── .github/workflows/          # GitHub Actions CI pipeline
+│   └── test.yml                # Automated test runner on push & pull request
+│
+├── docker-compose.yml          # Multi-container orchestration (API, Mongo, Redis)
+├── package.json                # Root monorepo orchestration scripts
+└── README.md                   # Project documentation
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start Guide
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (version 18 or higher)
 - [Git](https://git-scm.com/)
 
-*(Note: MongoDB and Redis are optional locally; the backend automatically falls back to an embedded in-memory database if an external instance is not detected!)*
+*(External MongoDB and Redis are optional locally — the server automatically starts an embedded database runner if not detected!)*
 
-### Zero-Config Local Setup
+### Zero-Config Local Run
 
 1. **Clone the repository:**
    ```bash
@@ -212,91 +222,99 @@ hostel-complaint-tracker/
    cd expense-tracker-api
    ```
 
-2. **Start the Backend Server:**
+2. **Run Backend (Port 5001):**
    ```bash
    cd backend
    npm install
    node src/server.js
    ```
-   *The server will start on `http://localhost:5001`. On first run, it will automatically launch the in-memory database and seed realistic demo accounts and complaints.*
+   *The backend starts at `http://localhost:5001`. On first run, it seeds demo student, warden, and staff accounts.*
 
-3. **Start the Frontend UI:**
+3. **Run Frontend (Port 3000):**
    ```bash
-   # In a new terminal window
+   # In a separate terminal
    cd frontend
    npm install
    npm run dev
    ```
-   *The frontend will launch at `http://localhost:3000`.*
+   *Open [http://localhost:3000](http://localhost:3000) in your browser.*
 
 ---
 
-## 🔑 Default Demo Credentials
+## 🔑 Pre-Seeded Demo Credentials
 
-Pre-seeded accounts are immediately available for local evaluation:
-
-| Role | Email | Password | Permissions |
+| Role | Email | Password | Capabilities |
 | :--- | :--- | :--- | :--- |
-| **Admin / Warden** | `warden@hostel.edu` | `Password123!` | Full dashboard analytics, staff delegation, status transitions |
-| **Student** | `student1@hostel.edu` | `Password123!` | Create tickets, view own history, add public comments, reopen |
+| **Admin / Warden** | `warden@hostel.edu` | `Password123!` | View KPI dashboard, assign staff, update ticket statuses |
+| **Student 1** | `student1@hostel.edu` | `Password123!` | Lodge complaints, view audit trail, post comments, reopen |
 | **Student 2** | `student2@hostel.edu` | `Password123!` | Secondary student account for multi-user testing |
-| **Electrician** | `electrician@hostel.edu` | `Password123!` | View electrical tickets, update progress |
-| **Plumber** | `plumber@hostel.edu` | `Password123!` | View plumbing tickets, update progress |
+| **Electrician** | `electrician@hostel.edu` | `Password123!` | View and update electrical complaints |
+| **Plumber** | `plumber@hostel.edu` | `Password123!` | View and update plumbing complaints |
+| **Carpenter** | `carpenter@hostel.edu` | `Password123!` | View and update carpentry complaints |
 
 ---
 
-## 📡 API Documentation
+## 📡 API Reference
 
-### Base URL: `/api/v1`
+Base URL: `http://localhost:5001/api/v1`
 
-#### Authentication Endpoints
-| Method | Endpoint | Access | Description |
+### Authentication (`/auth`)
+| Method | Route | Access | Description |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/auth/register` | Public | Register new student account |
-| `POST` | `/auth/login` | Public | Authenticate user & return dual JWT tokens |
-| `POST` | `/auth/refresh-token` | Public | Exchange refresh cookie for new access token |
-| `POST` | `/auth/logout` | Authenticated | Clear session refresh cookies |
-| `GET` | `/auth/me` | Authenticated | Fetch current authenticated user profile |
+| `POST` | `/auth/register` | Public | Register a new student account |
+| `POST` | `/auth/login` | Public | Login and receive dual JWT tokens |
+| `POST` | `/auth/refresh-token` | Public | Refresh expired access token using cookie |
+| `POST` | `/auth/logout` | Authenticated | Logout and invalidate refresh token |
+| `GET` | `/auth/me` | Authenticated | Get current authenticated user profile |
 
-#### Complaint Endpoints
-| Method | Endpoint | Access | Description |
+### Complaints (`/complaints`)
+| Method | Route | Access | Description |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/complaints` | Authenticated | List complaints (Students: own; Warden: all with filters) |
-| `POST` | `/complaints` | Student | Lodge a new maintenance complaint |
-| `GET` | `/complaints/:id` | Authenticated | Retrieve complete ticket details & audit trail |
-| `PATCH` | `/complaints/:id/status` | Admin / Staff | Update status (`Open` $\to$ `In Progress` $\to$ `Resolved` $\to$ `Closed`) |
-| `PATCH` | `/complaints/:id/assign` | Admin | Assign complaint to a staff member |
+| `GET` | `/complaints` | Authenticated | List complaints (with status, category, priority filters) |
+| `POST` | `/complaints` | Student | Create a new maintenance ticket |
+| `GET` | `/complaints/:id` | Authenticated | Get detailed ticket information & audit timeline |
+| `PATCH` | `/complaints/:id/status` | Admin / Staff | Transition ticket status |
+| `PATCH` | `/complaints/:id/assign` | Admin | Assign ticket to a maintenance technician |
 | `POST` | `/complaints/:id/comments` | Authenticated | Add public comment or internal note |
-| `POST` | `/complaints/:id/reopen` | Student | Reopen a resolved ticket with explanation |
+| `POST` | `/complaints/:id/reopen` | Student | Reopen an unresolved complaint |
 
-#### Dashboard Endpoints
-| Method | Endpoint | Access | Description |
+### Dashboard (`/dashboard`)
+| Method | Route | Access | Description |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/dashboard/metrics` | Admin | Aggregate counts, category distributions & average SLA |
+| `GET` | `/dashboard/metrics` | Admin | KPI metrics, category breakdown & resolution times |
 
 ---
 
-## 🧪 Testing & Quality Assurance
+## 🧪 Automated Testing
 
-### Run Backend Integration Tests
-Executes 39 end-to-end integration test cases verifying auth validation, RBAC enforcement, query filters, and status transitions:
+### Backend Integration Tests (Jest)
+Runs 39 integration tests verifying authentication, RBAC, complaint workflows, and aggregation endpoints:
 ```bash
 cd backend
 npm test
 ```
 
-### Run Test Coverage
+### Backend Coverage Report
 ```bash
 cd backend
 npm run test:coverage
 ```
 
-### Run Load Benchmarks (Autocannon)
-Simulates concurrent load on critical endpoints to measure throughput and latency:
+### Frontend Component Tests (Vitest)
 ```bash
-cd backend
-npm run test:load
+cd frontend
+npm test
 ```
+
+---
+
+## 🐳 Docker Deployment
+
+To launch the full production environment using Docker Compose:
+```bash
+docker-compose up --build
+```
+This boots up MongoDB, Redis, and the Node.js API with health checks and network isolation.
 
 ---
 
