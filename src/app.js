@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -19,6 +20,9 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 
+// Serve static frontend assets from public/
+app.use(express.static(path.join(__dirname, '../public')));
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -32,9 +36,15 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/expenses', expenseRoutes);
 
-// Catch-all route for undefined endpoints (404)
+// Catch-all route for undefined endpoints
 app.all('*', (req, res, next) => {
-  next(new AppError(`Cannot find ${req.method} ${req.originalUrl} on this server!`, 404));
+  // If the request is for an API endpoint, return standard 404 JSON
+  if (req.originalUrl.startsWith('/api')) {
+    return next(new AppError(`Cannot find ${req.method} ${req.originalUrl} on this server!`, 404));
+  }
+
+  // Otherwise, serve index.html for client-side SPA routing
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 // Centralized error-handling middleware (must be registered last)
