@@ -9,17 +9,17 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          'bg-[var(--brand-teal)] text-[var(--text-inverse)] hover:bg-[var(--brand-teal-hover)] hover:-translate-y-px shadow-[var(--shadow-subtle)] focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)]',
+          'bg-[var(--brand-teal)] text-[var(--text-inverse)] hover:bg-[var(--brand-teal-hover)] hover:-translate-y-0.5 shadow-[var(--shadow-button-primary)] hover:shadow-[var(--shadow-button-primary-hover)] focus-visible:ring-2 focus-visible:ring-[var(--brand-teal)] active:translate-y-0',
         secondary:
-          'bg-[var(--bg-subtle)] text-[var(--text-primary)] hover:bg-[var(--border-color)] border border-[var(--border-color)]',
+          'bg-[var(--bg-subtle)] text-[var(--text-primary)] hover:bg-[var(--border-color)] hover:-translate-y-0.5 border border-[var(--border-color)] hover:border-[var(--brand-teal-border)] shadow-[var(--shadow-xs)] hover:shadow-[var(--shadow-subtle)] active:translate-y-0',
         outline:
-          'bg-transparent border border-[var(--border-color)] text-[var(--text-primary)] hover:bg-[var(--bg-subtle)]',
+          'bg-[var(--bg-surface)] border border-[var(--border-color)] text-[var(--text-primary)] hover:border-[var(--brand-teal-border)] hover:bg-[var(--brand-teal-subtle)] hover:-translate-y-0.5 shadow-[var(--shadow-xs)] hover:shadow-[var(--shadow-subtle)] active:translate-y-0',
         ghost:
-          'bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)]',
+          'bg-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] active:scale-[0.97]',
         danger:
-          'bg-[var(--priority-critical)] text-white hover:opacity-95 shadow-[var(--shadow-subtle)]',
+          'bg-[var(--priority-critical)] text-white hover:opacity-95 hover:-translate-y-0.5 shadow-[var(--shadow-xs)] active:translate-y-0',
         subtleTeal:
-          'bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] border border-[var(--brand-teal-border)] hover:bg-[var(--brand-teal-subtle)]/80',
+          'bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] border border-[var(--brand-teal-border)] hover:bg-[var(--brand-teal-subtle)]/80 hover:-translate-y-0.5 shadow-[var(--shadow-xs)] active:translate-y-0',
       },
       size: {
         sm: 'h-8 px-3 text-xs rounded-[8px] gap-1.5',

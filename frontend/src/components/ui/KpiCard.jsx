@@ -43,10 +43,12 @@ export function KpiCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       className={clsx(
-        'relative overflow-hidden p-5 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)] flex flex-col justify-between transition-colors',
+        'group relative overflow-hidden p-5 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)] hover-lift flex flex-col justify-between cursor-default transition-all duration-200',
         className
       )}
     >
+      {/* Subtle top edge specular reflection */}
+      <div className="absolute inset-x-0 top-0 h-px bg-white/40 dark:bg-white/10 pointer-events-none" />
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-medium text-[var(--text-muted)] tracking-wide uppercase">
@@ -69,7 +71,7 @@ export function KpiCard({
         {Icon && (
           <div
             className={clsx(
-              'p-2 rounded-[10px] bg-[var(--bg-subtle)] text-[var(--text-secondary)] border border-[var(--border-subtle)]',
+              'p-2.5 rounded-[10px] bg-[var(--bg-subtle)] text-[var(--text-secondary)] border border-[var(--border-subtle)] transition-all duration-200 group-hover:scale-110 group-hover:shadow-xs',
               isPulsing && 'pulse-critical text-[var(--priority-critical)]'
             )}
             style={

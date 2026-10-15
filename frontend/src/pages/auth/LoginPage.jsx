@@ -272,11 +272,11 @@ export function LoginPage() {
                   key={role.label}
                   type="button"
                   onClick={() => handleInstantBypass(role.role === 'staff' ? role.label.toLowerCase() : role.role)}
-                  className="px-2.5 py-2 rounded-[8px] bg-[var(--bg-surface)] hover:bg-[var(--brand-teal-subtle)] border border-[var(--border-color)] hover:border-[var(--brand-teal)] text-left transition-all text-xs cursor-pointer group shadow-xs"
+                  className="px-2.5 py-2 rounded-[8px] bg-[var(--bg-surface)] hover:bg-[var(--brand-teal-subtle)] border border-[var(--border-color)] hover:border-[var(--brand-teal)] text-left transition-all text-xs cursor-pointer group shadow-[var(--shadow-xs)] hover-lift-sm"
                 >
                   <p className="font-semibold text-[var(--text-primary)] group-hover:text-[var(--brand-teal)] leading-none flex items-center justify-between">
                     {role.label}
-                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ArrowRight className="w-3 h-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-150" />
                   </p>
                   <p className="text-[10px] text-[var(--text-muted)] font-mono-numbers mt-1 leading-none">
                     {role.badge}

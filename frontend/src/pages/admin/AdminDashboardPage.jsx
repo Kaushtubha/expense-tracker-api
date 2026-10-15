@@ -330,7 +330,8 @@ export function AdminDashboardPage() {
       {/* SLA Metric & Analytics Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 my-6">
         {/* Left: 14-Day Complaint Volume Area Chart */}
-        <div className="lg:col-span-2 p-5 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)]">
+        <div className="relative group lg:col-span-2 p-5 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)] hover-lift">
+          <div className="absolute inset-x-0 top-0 h-px bg-white/40 dark:bg-white/10 pointer-events-none" />
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="font-display text-base font-semibold text-[var(--text-primary)]">
@@ -380,7 +381,8 @@ export function AdminDashboardPage() {
         </div>
 
         {/* Right: Category Distribution Donut Chart */}
-        <div className="p-5 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)] flex flex-col justify-between">
+        <div className="relative group p-5 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)] hover-lift flex flex-col justify-between">
+          <div className="absolute inset-x-0 top-0 h-px bg-white/40 dark:bg-white/10 pointer-events-none" />
           <div>
             <h2 className="font-display text-base font-semibold text-[var(--text-primary)]">
               Trade Category Distribution
@@ -442,7 +444,8 @@ export function AdminDashboardPage() {
       </div>
 
       {/* Recent High-Priority & Urgent Tickets Table */}
-      <div className="p-5 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)]">
+      <div className="relative p-5 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-all duration-200">
+        <div className="absolute inset-x-0 top-0 h-px bg-white/40 dark:bg-white/10 pointer-events-none" />
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="font-display text-base font-semibold text-[var(--text-primary)]">
@@ -479,7 +482,7 @@ export function AdminDashboardPage() {
                 <tr
                   key={item._id}
                   onClick={() => setSelectedComplaint(item)}
-                  className="hover:bg-[var(--bg-subtle)] transition-colors cursor-pointer group"
+                  className="hover:bg-[var(--bg-subtle)] transition-colors duration-150 cursor-pointer group"
                 >
                   <td className="py-3 px-3 font-mono-numbers font-medium text-[var(--text-primary)] group-hover:text-[var(--brand-teal)]">
                     {item.ticketId || `#${item._id.slice(-4)}`}

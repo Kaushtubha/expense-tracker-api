@@ -59,10 +59,15 @@
   --radius-card: 14px;
   --radius-pill: 9999px;
 
-  /* Shadows */
-  --shadow-subtle: 0 1px 2px rgba(28, 25, 23, 0.04), 0 2px 4px rgba(28, 25, 23, 0.02);
-  --shadow-card: 0 1px 3px rgba(28, 25, 23, 0.05), 0 6px 16px -4px rgba(28, 25, 23, 0.03);
-  --shadow-elevated: 0 4px 6px -1px rgba(28, 25, 23, 0.06), 0 20px 25px -5px rgba(28, 25, 23, 0.04);
+  /* Luxury Multi-Layered Shadows (Light Mode - Warm Paper) */
+  --shadow-xs: 0 1px 2px rgba(28, 25, 23, 0.05);
+  --shadow-subtle: 0 1px 3px rgba(28, 25, 23, 0.06), 0 1px 2px rgba(28, 25, 23, 0.04);
+  --shadow-card: 0 1px 3px rgba(28, 25, 23, 0.04), 0 6px 18px -2px rgba(28, 25, 23, 0.06), 0 0 0 1px rgba(28, 25, 23, 0.05);
+  --shadow-card-hover: 0 3px 6px rgba(28, 25, 23, 0.04), 0 14px 28px -4px rgba(15, 118, 110, 0.12), 0 30px 60px -8px rgba(28, 25, 23, 0.12), 0 0 0 1px rgba(15, 118, 110, 0.35);
+  --shadow-elevated: 0 4px 6px -1px rgba(28, 25, 23, 0.05), 0 20px 40px -6px rgba(28, 25, 23, 0.12), 0 0 0 1px rgba(28, 25, 23, 0.06);
+  --shadow-glow-teal: 0 0 20px -2px rgba(15, 118, 110, 0.25);
+  --shadow-button-primary: 0 2px 4px rgba(15, 118, 110, 0.25), 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-button-primary-hover: 0 6px 18px rgba(15, 118, 110, 0.4), 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .dark {
@@ -86,10 +91,15 @@
   --brand-teal-subtle: rgba(45, 212, 191, 0.12);
   --brand-teal-border: rgba(45, 212, 191, 0.28);
 
-  /* Shadows in Dark */
-  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.35);
-  --shadow-elevated: 0 12px 32px rgba(0, 0, 0, 0.5);
+  /* Luxury Multi-Layered Shadows (Dark Mode - Deep Ink) */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.6);
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.5), 0 12px 30px -4px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.07), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.6), 0 20px 40px -6px rgba(0, 0, 0, 0.8), 0 0 24px -2px rgba(45, 212, 191, 0.2), 0 0 0 1px rgba(45, 212, 191, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.16);
+  --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.7), 0 32px 64px -8px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.09), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  --shadow-glow-teal: 0 0 24px -2px rgba(45, 212, 191, 0.35);
+  --shadow-button-primary: 0 2px 8px rgba(45, 212, 191, 0.3), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-button-primary-hover: 0 6px 20px rgba(45, 212, 191, 0.5), 0 0 12px rgba(45, 212, 191, 0.25);
 }
 
 /* ==========================================================================
@@ -131,6 +141,62 @@ body {
 :focus-visible {
   outline: 2px solid var(--brand-teal);
   outline-offset: 2px;
+}
+
+/* Luxury Card Hover Micro-Lift & Multi-Layer Shadow Elevation */
+.hover-lift {
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, box-shadow;
+}
+
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover) !important;
+  border-color: var(--brand-teal-border) !important;
+}
+
+/* Subtle Interactive Lift for smaller elements (buttons, chips, pills) */
+.hover-lift-sm {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, box-shadow;
+}
+
+.hover-lift-sm:hover {
+  transform: translateY(-1.5px);
+  box-shadow: var(--shadow-subtle);
+  border-color: var(--brand-teal-border);
+}
+
+/* Specular Top Edge Light Highlight */
+.card-specular {
+  position: relative;
+}
+
+.card-specular::before {
+  content: "";
+  position: absolute;
+  inset-x: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.55) 50%, transparent 100%);
+  pointer-events: none;
+  opacity: 0.8;
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  transition: opacity 0.24s ease;
+}
+
+.dark .card-specular::before {
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+  opacity: 0.5;
+}
+
+.card-specular:hover::before {
+  opacity: 1;
 }
 
 /* Custom Scrollbars */

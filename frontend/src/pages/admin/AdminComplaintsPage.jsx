@@ -360,7 +360,7 @@ export function AdminComplaintsPage() {
       </div>
 
       {/* TanStack Table UI */}
-      <div className="rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)] overflow-hidden">
+      <div className="rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)] card-specular hover:shadow-[var(--shadow-elevated)] transition-all duration-300 overflow-hidden">
         {isLoading ? (
           <div className="p-6 space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (

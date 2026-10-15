@@ -227,7 +227,7 @@ export function StudentComplaintsPage() {
       {/* Summary Strip (Open, In Progress, Resolved with Progress Bar) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 my-6">
         {/* Open Card */}
-        <div className="p-4 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)]">
+        <div className="p-4 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)] hover-lift card-specular cursor-default">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
               Awaiting Dispatch
@@ -251,7 +251,7 @@ export function StudentComplaintsPage() {
         </div>
 
         {/* In Progress Card */}
-        <div className="p-4 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)]">
+        <div className="p-4 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)] hover-lift card-specular cursor-default">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
               Under Repair
@@ -275,7 +275,7 @@ export function StudentComplaintsPage() {
         </div>
 
         {/* Resolved Card */}
-        <div className="p-4 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)]">
+        <div className="p-4 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)] hover-lift card-specular cursor-default">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
               Resolved & Verified
@@ -373,7 +373,7 @@ export function StudentComplaintsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 onClick={() => setSelectedComplaint(item)}
-                className="group relative p-5 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] hover:border-[var(--brand-teal-border)] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-all cursor-pointer flex flex-col justify-between"
+                className="group relative p-5 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)] hover-lift card-specular cursor-pointer flex flex-col justify-between overflow-hidden"
               >
                 <div>
                   {/* Top row: Ticket ID, Category & Priority */}

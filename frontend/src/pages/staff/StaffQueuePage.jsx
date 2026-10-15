@@ -251,10 +251,10 @@ export function StaffQueuePage() {
                 <div
                   key={item._id}
                   onClick={() => setSelectedTicket(item)}
-                  className={`p-5 rounded-[14px] bg-[var(--bg-surface)] border transition-all cursor-pointer shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] flex flex-col justify-between gap-4 ${
+                  className={`p-5 rounded-[14px] bg-[var(--bg-surface)] border shadow-[var(--shadow-card)] hover-lift card-specular cursor-pointer flex flex-col justify-between gap-4 overflow-hidden ${
                     isCritical
                       ? 'border-[var(--priority-critical)]/40 bg-[var(--priority-critical-bg)]/10'
-                      : 'border-[var(--border-color)] hover:border-[var(--brand-teal-border)]'
+                      : 'border-[var(--border-color)]'
                   }`}
                 >
                   <div>
