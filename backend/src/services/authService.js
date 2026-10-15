@@ -3,14 +3,22 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const AppError = require('../utils/AppError');
 
+const getAccessSecret = () =>
+  process.env.JWT_ACCESS_SECRET ||
+  process.env.JWT_SECRET ||
+  'hostel_default_access_secret_key_2026';
+
+const getRefreshSecret = () =>
+  process.env.JWT_REFRESH_SECRET || 'hostel_default_refresh_secret_key_2026';
+
 /**
  * Generate short-lived Access Token (15 mins by default)
  */
 const generateAccessToken = (user) => {
   return jwt.sign(
     { id: user._id, role: user.role },
-    process.env.JWT_ACCESS_SECRET,
-    { expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m' }
+    getAccessSecret(),
+    { expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || process.env.JWT_EXPIRES_IN || '15m' }
   );
 };
 
@@ -21,7 +29,7 @@ const generateAccessToken = (user) => {
 const generateRefreshToken = (userId) => {
   return jwt.sign(
     { id: userId, jti: crypto.randomUUID() },
-    process.env.JWT_REFRESH_SECRET,
+    getRefreshSecret(),
     { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
   );
 };
@@ -100,7 +108,7 @@ const refreshAccessToken = async (oldRefreshToken) => {
 
   let decoded;
   try {
-    decoded = jwt.verify(oldRefreshToken, process.env.JWT_REFRESH_SECRET);
+    decoded = jwt.verify(oldRefreshToken, getRefreshSecret());
   } catch (err) {
     throw new AppError('Refresh token is invalid or expired. Please log in again.', 401);
   }

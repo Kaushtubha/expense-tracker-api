@@ -23,7 +23,11 @@ const protect = async (req, res, next) => {
     }
 
     // Verify Access Token
-    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    const jwtSecret =
+      process.env.JWT_ACCESS_SECRET ||
+      process.env.JWT_SECRET ||
+      'hostel_default_access_secret_key_2026';
+    const decoded = jwt.verify(token, jwtSecret);
 
     // Verify user still exists in database
     const currentUser = await User.findById(decoded.id);
