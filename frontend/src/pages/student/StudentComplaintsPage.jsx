@@ -1,308 +1,385 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import api from '../../services/api';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { StatusBadge } from '../../components/common/StatusBadge';
-import { PriorityBadge } from '../../components/common/PriorityBadge';
-import { CategoryIcon } from '../../components/common/CategoryIcon';
-import { ComplaintDetailModal } from '../../components/complaint/ComplaintDetailModal';
-import { PlusCircle, Search, Filter, MessageSquare, Clock, AlertCircle } from 'lucide-react';
+import { StatusBadge, PriorityBadge, CategoryBadge } from '../../components/ui/Badge';
+import { Button } from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
+import { Skeleton, EmptyState } from '../../components/ui/EmptyState';
+import { Drawer } from '../../components/ui/Drawer';
+import { NewComplaintModal } from '../../components/complaint/NewComplaintModal';
+import { ComplaintDetailView } from '../../components/complaint/ComplaintDetailView';
+import { formatRelativeTime } from '../../lib/formatters';
+import {
+  Plus,
+  Search,
+  SlidersHorizontal,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Wrench,
+  RotateCcw,
+  Sparkles,
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+import api from '../../services/api';
 
-export const StudentComplaintsPage = () => {
+export function StudentComplaintsPage() {
   const { user } = useAuth();
+
   const [complaints, setComplaints] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  // Filters
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
+  const [isNewModalOpen, setIsNewModalOpen] = useState(false);
 
-  // Selected complaint for modal
-  const [selectedComplaintId, setSelectedComplaintId] = useState(null);
+  // Time-aware greeting
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }, []);
 
+  // Fetch complaints
   const fetchComplaints = async () => {
     try {
-      setLoading(true);
-      const params = { limit: 50 };
-      if (statusFilter !== 'All') params.status = statusFilter;
-      if (categoryFilter !== 'All') params.category = categoryFilter;
-
-      const res = await api.get('/complaints', { params });
-      setComplaints(res.data);
+      setIsLoading(true);
+      const res = await api.get('/complaints');
+      const list = res.data.complaints || res.data.data || [];
+      setComplaints(list);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch complaints');
+      toast.error('Failed to load your complaints list');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchComplaints();
-  }, [statusFilter, categoryFilter]);
+  }, []);
 
-  const filteredComplaints = complaints.filter((c) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      c.title.toLowerCase().includes(q) ||
-      c.description.toLowerCase().includes(q) ||
-      c.category.toLowerCase().includes(q)
-    );
-  });
+  // Keyboard shortcut for search (/) and new complaint (n)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      if (e.key === '/') {
+        e.preventDefault();
+        document.getElementById('complaint-search-input')?.focus();
+      } else if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        setIsNewModalOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Summary Metrics
+  const metrics = useMemo(() => {
+    const openCount = complaints.filter(
+      (c) => (c.status || '').toLowerCase() === 'open'
+    ).length;
+    const progressCount = complaints.filter(
+      (c) => (c.status || '').toLowerCase() === 'in progress'
+    ).length;
+    const resolvedCount = complaints.filter(
+      (c) =>
+        (c.status || '').toLowerCase() === 'resolved' ||
+        (c.status || '').toLowerCase() === 'closed'
+    ).length;
+    const total = complaints.length || 1;
+
+    return {
+      open: openCount,
+      progress: progressCount,
+      resolved: resolvedCount,
+      total: complaints.length,
+      openShare: Math.round((openCount / total) * 100),
+      progressShare: Math.round((progressCount / total) * 100),
+      resolvedShare: Math.round((resolvedCount / total) * 100),
+    };
+  }, [complaints]);
+
+  // Filtered complaints
+  const filteredComplaints = useMemo(() => {
+    return complaints.filter((c) => {
+      const status = (c.status || '').toLowerCase();
+      const matchesFilter =
+        activeFilter === 'All'
+          ? true
+          : activeFilter === 'Open'
+          ? status === 'open'
+          : activeFilter === 'In Progress'
+          ? status === 'in progress'
+          : activeFilter === 'Resolved'
+          ? status === 'resolved' || status === 'closed'
+          : true;
+
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        c.title?.toLowerCase().includes(q) ||
+        c.description?.toLowerCase().includes(q) ||
+        c.ticketId?.toLowerCase().includes(q) ||
+        c.category?.toLowerCase().includes(q);
+
+      return matchesFilter && matchesSearch;
+    });
+  }, [complaints, activeFilter, searchQuery]);
 
   return (
-    <div className="container" style={{ padding: '36px 20px', minHeight: 'calc(100vh - 68px)' }}>
-      {/* Top Banner */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '16px',
-          marginBottom: '28px',
-        }}
-      >
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      {/* Time-Aware Greeting Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[var(--border-subtle)]">
         <div>
-          <h1 style={{ fontSize: '1.85rem', marginBottom: '4px' }}>My Complaints</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-            Room {user?.roomNumber || 'N/A'} • Track your reported hostel maintenance issues
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[var(--brand-teal)] font-mono-numbers">
+            <span className="w-2 h-2 rounded-full bg-[var(--brand-teal)]" />
+            Resident Dashboard • {user?.roomNumber ? `Room ${user.roomNumber}` : 'Hostel Resident'}
+          </div>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)] mt-1">
+            {greeting}, {user?.name?.split(' ')[0] || 'Resident'}
+          </h1>
+          <p className="text-xs text-[var(--text-secondary)] mt-1">
+            Track active maintenance requests or lodge a new issue for prompt technician dispatch.
           </p>
         </div>
 
-        <Link to="/student/new-complaint" className="btn btn-primary">
-          <PlusCircle size={18} /> Raise New Complaint
-        </Link>
+        {/* New Complaint Button */}
+        <Button
+          variant="primary"
+          size="md"
+          onClick={() => setIsNewModalOpen(true)}
+          className="shadow-[var(--shadow-card)]"
+        >
+          <Plus className="w-4 h-4 mr-1" /> New Complaint
+          <span className="ml-1.5 text-[10px] font-mono-numbers px-1.5 py-0.5 rounded bg-[var(--brand-teal-hover)] text-white/90">
+            N
+          </span>
+        </Button>
       </div>
 
-      {/* Filter Toolbar */}
-      <div
-        className="glass-card"
-        style={{
-          padding: '16px 20px',
-          marginBottom: '28px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '16px',
-        }}
-      >
-        {/* Status Pills */}
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          {['All', 'Open', 'In Progress', 'Resolved', 'Closed'].map((st) => (
-            <button
-              key={st}
-              onClick={() => setStatusFilter(st)}
-              className="btn btn-sm"
-              style={{
-                backgroundColor: statusFilter === st ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-                color: statusFilter === st ? '#818cf8' : 'var(--text-secondary)',
-                border: statusFilter === st ? '1px solid rgba(99, 102, 241, 0.4)' : '1px solid var(--border-subtle)',
-              }}
-            >
-              {st}
-            </button>
-          ))}
+      {/* Summary Strip (Open, In Progress, Resolved with Progress Bar) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 my-6">
+        {/* Open Card */}
+        <div className="p-4 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
+              Awaiting Dispatch
+            </span>
+            <AlertCircle className="w-4 h-4 text-[var(--status-open)]" />
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="font-display text-2xl font-bold text-[var(--text-primary)]">
+              {metrics.open}
+            </span>
+            <span className="text-xs text-[var(--text-muted)] font-mono-numbers">
+              active ticket{metrics.open !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="mt-3 w-full bg-[var(--bg-subtle)] h-1.5 rounded-full overflow-hidden">
+            <div
+              className="bg-[var(--status-open)] h-full transition-all duration-300"
+              style={{ width: `${metrics.openShare}%` }}
+            />
+          </div>
         </div>
 
-        {/* Category & Search */}
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <select
-            className="input-field"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            style={{ width: '150px', padding: '8px 12px', fontSize: '0.84rem' }}
-          >
-            <option value="All">All Categories</option>
-            <option value="water">Water</option>
-            <option value="electricity">Electricity</option>
-            <option value="wifi">Wi-Fi</option>
-            <option value="cleanliness">Cleanliness</option>
-            <option value="furniture">Furniture</option>
-            <option value="other">Other</option>
-          </select>
-
-          <div style={{ position: 'relative' }}>
-            <Search
-              size={15}
-              color="var(--text-muted)"
-              style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }}
+        {/* In Progress Card */}
+        <div className="p-4 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
+              Under Repair
+            </span>
+            <Clock className="w-4 h-4 text-[var(--status-progress)]" />
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="font-display text-2xl font-bold text-[var(--text-primary)]">
+              {metrics.progress}
+            </span>
+            <span className="text-xs text-[var(--text-muted)] font-mono-numbers">
+              in progress
+            </span>
+          </div>
+          <div className="mt-3 w-full bg-[var(--bg-subtle)] h-1.5 rounded-full overflow-hidden">
+            <div
+              className="bg-[var(--status-progress)] h-full transition-all duration-300"
+              style={{ width: `${metrics.progressShare}%` }}
             />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="input-field"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ paddingLeft: '32px', width: '180px', padding: '8px 12px 8px 32px', fontSize: '0.84rem' }}
+          </div>
+        </div>
+
+        {/* Resolved Card */}
+        <div className="p-4 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] shadow-[var(--shadow-card)]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
+              Resolved & Verified
+            </span>
+            <CheckCircle2 className="w-4 h-4 text-[var(--status-resolved)]" />
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="font-display text-2xl font-bold text-[var(--text-primary)]">
+              {metrics.resolved}
+            </span>
+            <span className="text-xs text-[var(--text-muted)] font-mono-numbers">
+              fixed successfully
+            </span>
+          </div>
+          <div className="mt-3 w-full bg-[var(--bg-subtle)] h-1.5 rounded-full overflow-hidden">
+            <div
+              className="bg-[var(--status-resolved)] h-full transition-all duration-300"
+              style={{ width: `${metrics.resolvedShare}%` }}
             />
           </div>
         </div>
       </div>
 
-      {/* Complaints Grid */}
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-secondary)' }}>
-          Loading your complaints...
+      {/* Filter Tabs & Search Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 my-6">
+        {/* Segmented Filter Bar */}
+        <div className="flex items-center p-1 rounded-[10px] bg-[var(--bg-surface)] border border-[var(--border-color)]">
+          {['All', 'Open', 'In Progress', 'Resolved'].map((tab) => {
+            const isActive = activeFilter === tab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveFilter(tab)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-[8px] transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-[var(--brand-teal)] text-[var(--text-inverse)] shadow-sm'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)]'
+                }`}
+              >
+                {tab}
+              </button>
+            );
+          })}
         </div>
-      ) : error ? (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            padding: '16px',
-            backgroundColor: 'rgba(239, 68, 68, 0.12)',
-            borderRadius: 'var(--radius-md)',
-            color: '#ef4444',
-          }}
-        >
-          <AlertCircle size={20} />
-          <span>{error}</span>
+
+        {/* Search Input with / shortcut */}
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-3 top-2.5 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
+          <Input
+            id="complaint-search-input"
+            type="search"
+            placeholder="Search complaints... (/)"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-8 text-xs"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-2.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+            >
+              ×
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Complaint Cards Grid */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((idx) => (
+            <Skeleton key={idx} className="h-44" />
+          ))}
         </div>
       ) : filteredComplaints.length === 0 ? (
-        <div
-          className="glass-card"
-          style={{
-            textAlign: 'center',
-            padding: '60px 20px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '16px',
-          }}
-        >
-          <div
-            style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '50%',
-              backgroundColor: 'rgba(99, 102, 241, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#818cf8',
-            }}
-          >
-            <Filter size={24} />
-          </div>
-          <div>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '6px' }}>No Complaints Found</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', maxWidth: '380px' }}>
-              {searchQuery || statusFilter !== 'All' || categoryFilter !== 'All'
-                ? 'No issues match your current filters. Try resetting the filters.'
-                : 'You have not raised any complaints yet. Everything seems in order!'}
-            </p>
-          </div>
-          <Link to="/student/new-complaint" className="btn btn-primary btn-sm">
-            <PlusCircle size={15} /> Raise a Complaint
-          </Link>
-        </div>
-      ) : (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
-            gap: '20px',
-          }}
-        >
-          {filteredComplaints.map((c) => (
-            <div
-              key={c._id}
-              className="glass-card"
-              style={{
-                padding: '22px',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
-              onClick={() => setSelectedComplaintId(c._id)}
-            >
-              <div>
-                {/* Card Header */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '12px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <CategoryIcon category={c.category} size={18} />
-                    <span style={{ fontSize: '0.82rem', textTransform: 'capitalize', color: 'var(--text-secondary)', fontWeight: '600' }}>
-                      {c.category}
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <PriorityBadge priority={c.priority} />
-                    <StatusBadge status={c.status} />
-                  </div>
-                </div>
-
-                <h3 style={{ fontSize: '1.1rem', marginBottom: '8px', lineHeight: 1.35 }}>
-                  {c.title}
-                </h3>
-
-                <p
-                  style={{
-                    color: 'var(--text-secondary)',
-                    fontSize: '0.86rem',
-                    lineHeight: 1.5,
-                    marginBottom: '16px',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {c.description}
-                </p>
-              </div>
-
-              {/* Card Footer */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  borderTop: '1px solid var(--border-subtle)',
-                  paddingTop: '12px',
-                  fontSize: '0.78rem',
-                  color: 'var(--text-muted)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Clock size={13} />
-                  <span>{new Date(c.createdAt).toLocaleDateString()}</span>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <MessageSquare size={13} />
-                    <span>{c.comments?.length || 0}</span>
-                  </div>
-                  <span style={{ color: '#818cf8', fontWeight: '600' }}>View Details →</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Modal View */}
-      {selectedComplaintId && (
-        <ComplaintDetailModal
-          complaintId={selectedComplaintId}
-          onClose={() => setSelectedComplaintId(null)}
-          onComplaintUpdated={() => fetchComplaints()}
+        <EmptyState
+          title={searchQuery ? 'No matching complaints found' : 'No complaints filed'}
+          description={
+            searchQuery
+              ? `No requests matched "${searchQuery}". Try a different keyword.`
+              : 'You have no maintenance complaints on record. Lodge one anytime.'
+          }
+          actionLabel="Lodge a Complaint"
+          onAction={() => setIsNewModalOpen(true)}
         />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <AnimatePresence>
+            {filteredComplaints.map((item) => (
+              <motion.div
+                key={item._id}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                onClick={() => setSelectedComplaint(item)}
+                className="group relative p-5 rounded-[14px] bg-[var(--bg-surface)] border border-[var(--border-color)] hover:border-[var(--brand-teal-border)] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-all cursor-pointer flex flex-col justify-between"
+              >
+                <div>
+                  {/* Top row: Ticket ID, Category & Priority */}
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="font-mono-numbers text-[11px] font-semibold text-[var(--text-muted)]">
+                      {item.ticketId || `#CMP-${item._id.slice(-4)}`}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <PriorityBadge priority={item.priority} />
+                      <StatusBadge status={item.status} />
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="font-display text-base font-semibold text-[var(--text-primary)] group-hover:text-[var(--brand-teal)] transition-colors line-clamp-1">
+                    {item.title}
+                  </h3>
+
+                  {/* Description preview */}
+                  <p className="mt-1.5 text-xs text-[var(--text-secondary)] line-clamp-2 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+
+                {/* Bottom metadata */}
+                <div className="mt-4 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] text-[var(--text-muted)] font-mono-numbers">
+                  <div className="flex items-center gap-1.5">
+                    <CategoryBadge category={item.category} />
+                    {item.reopenCount > 0 && (
+                      <span className="text-[10px] text-[var(--priority-critical)] font-semibold inline-flex items-center gap-0.5">
+                        <RotateCcw className="w-2.5 h-2.5" /> {item.reopenCount}x
+                      </span>
+                    )}
+                  </div>
+                  <span>{formatRelativeTime(item.createdAt)}</span>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
       )}
+
+      {/* Detail Drawer */}
+      <Drawer
+        isOpen={!!selectedComplaint}
+        onClose={() => setSelectedComplaint(null)}
+        title={selectedComplaint?.title || 'Complaint Details'}
+        subtitle={selectedComplaint?.ticketId || 'Audit Log & Thread'}
+        width="max-w-2xl"
+      >
+        <ComplaintDetailView
+          complaint={selectedComplaint}
+          onUpdate={(updated) => {
+            setSelectedComplaint(updated);
+            setComplaints((prev) =>
+              prev.map((c) => (c._id === updated._id ? updated : c))
+            );
+          }}
+        />
+      </Drawer>
+
+      {/* New Complaint Modal */}
+      <NewComplaintModal
+        isOpen={isNewModalOpen}
+        onClose={() => setIsNewModalOpen(false)}
+        onCreated={(newTicket) => {
+          setComplaints((prev) => [newTicket, ...prev]);
+        }}
+      />
     </div>
   );
-};
+}

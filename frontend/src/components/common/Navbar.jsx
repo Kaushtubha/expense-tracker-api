@@ -1,198 +1,153 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { ShieldCheck, PlusCircle, LayoutDashboard, ListFilter, LogOut, Wrench } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
+import {
+  Building2,
+  Sun,
+  Moon,
+  LogOut,
+  LayoutDashboard,
+  ClipboardList,
+  Wrench,
+  User,
+} from 'lucide-react';
+import clsx from 'clsx';
 
-export const Navbar = () => {
-  const { user, logout } = useAuth();
+export function Navbar() {
+  const { user, logout, isAuthenticated } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
-  const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
+  if (!isAuthenticated) return null;
 
-  const isActive = (path) => location.pathname === path;
+  const role = user?.role || 'student';
+
+  const navLinks = [
+    ...(role === 'student'
+      ? [
+          {
+            to: '/student/complaints',
+            label: 'My Complaints',
+            icon: ClipboardList,
+          },
+        ]
+      : []),
+    ...(role === 'admin'
+      ? [
+          {
+            to: '/admin/dashboard',
+            label: 'Dashboard',
+            icon: LayoutDashboard,
+          },
+          {
+            to: '/admin/complaints',
+            label: 'Complaints Master',
+            icon: ClipboardList,
+          },
+        ]
+      : []),
+    ...(role === 'staff'
+      ? [
+          {
+            to: '/staff/queue',
+            label: 'Work Queue',
+            icon: Wrench,
+          },
+        ]
+      : []),
+  ];
 
   return (
-    <header
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        backgroundColor: 'rgba(11, 15, 25, 0.85)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        borderBottom: '1px solid var(--border-subtle)',
-      }}
-    >
-      <div
-        className="container"
-        style={{
-          height: '68px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        {/* Brand Logo */}
+    <header className="sticky top-0 z-40 w-full bg-[var(--bg-surface)]/90 backdrop-blur-md border-b border-[var(--border-color)]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-15 flex items-center justify-between gap-4">
+        {/* Brand */}
         <Link
-          to={user?.role === 'student' ? '/student/complaints' : '/admin/dashboard'}
-          style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
+          to="/"
+          className="flex items-center gap-2.5 text-[var(--text-primary)] hover:opacity-90 transition-opacity"
         >
-          <div
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '10px',
-              background: 'var(--brand-gradient)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 0 16px rgba(99, 102, 241, 0.4)',
-            }}
-          >
-            <ShieldCheck size={20} color="#ffffff" />
+          <div className="w-8 h-8 rounded-[8px] bg-[var(--brand-teal)] text-[var(--text-inverse)] flex items-center justify-center shadow-[var(--shadow-subtle)]">
+            <Building2 className="w-4 h-4" strokeWidth={2} />
           </div>
           <div>
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '1.25rem',
-                fontWeight: '800',
-                letterSpacing: '-0.02em',
-                background: 'var(--brand-gradient)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
+            <span className="font-display text-base font-semibold tracking-tight">
               HostelPulse
+            </span>
+            <span className="ml-2 text-[10px] font-mono-numbers px-1.5 py-0.5 rounded bg-[var(--bg-subtle)] text-[var(--text-muted)] border border-[var(--border-subtle)] uppercase">
+              Ops
             </span>
           </div>
         </Link>
 
-        {/* Center Nav Links */}
-        {user && (
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {user.role === 'student' ? (
-              <>
-                <Link
-                  to="/student/complaints"
-                  className="btn btn-sm"
-                  style={{
-                    backgroundColor: isActive('/student/complaints')
-                      ? 'rgba(99, 102, 241, 0.15)'
-                      : 'transparent',
-                    color: isActive('/student/complaints')
-                      ? '#818cf8'
-                      : 'var(--text-secondary)',
-                    border: isActive('/student/complaints')
-                      ? '1px solid rgba(99, 102, 241, 0.3)'
-                      : '1px solid transparent',
-                  }}
-                >
-                  <ListFilter size={15} /> My Complaints
-                </Link>
-                <Link
-                  to="/student/new-complaint"
-                  className="btn btn-sm btn-primary"
-                  style={{ padding: '7px 14px' }}
-                >
-                  <PlusCircle size={15} /> Raise Issue
-                </Link>
-              </>
+        {/* Navigation links */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navLinks.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.to;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={clsx(
+                  'flex items-center gap-2 px-3.5 py-2 text-xs font-medium rounded-[8px] transition-colors',
+                  isActive
+                    ? 'bg-[var(--brand-teal-subtle)] text-[var(--brand-teal)] border border-[var(--brand-teal-border)]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)]'
+                )}
+              >
+                <Icon className="w-3.5 h-3.5" strokeWidth={1.75} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Right tools: Theme toggle, User badge, Logout */}
+        <div className="flex items-center gap-2">
+          {/* Theme Switcher */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label="Toggle color theme"
+            className="p-2 rounded-[8px] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] border border-transparent hover:border-[var(--border-subtle)] transition-colors cursor-pointer"
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-4 h-4" />
             ) : (
-              <>
-                <Link
-                  to="/admin/dashboard"
-                  className="btn btn-sm"
-                  style={{
-                    backgroundColor: isActive('/admin/dashboard')
-                      ? 'rgba(99, 102, 241, 0.15)'
-                      : 'transparent',
-                    color: isActive('/admin/dashboard')
-                      ? '#818cf8'
-                      : 'var(--text-secondary)',
-                    border: isActive('/admin/dashboard')
-                      ? '1px solid rgba(99, 102, 241, 0.3)'
-                      : '1px solid transparent',
-                  }}
-                >
-                  <LayoutDashboard size={15} /> Overview
-                </Link>
-                <Link
-                  to="/admin/complaints"
-                  className="btn btn-sm"
-                  style={{
-                    backgroundColor: isActive('/admin/complaints')
-                      ? 'rgba(99, 102, 241, 0.15)'
-                      : 'transparent',
-                    color: isActive('/admin/complaints')
-                      ? '#818cf8'
-                      : 'var(--text-secondary)',
-                    border: isActive('/admin/complaints')
-                      ? '1px solid rgba(99, 102, 241, 0.3)'
-                      : '1px solid transparent',
-                  }}
-                >
-                  <Wrench size={15} /> Manage Complaints
-                </Link>
-              </>
+              <Moon className="w-4 h-4" />
             )}
-          </nav>
-        )}
+          </button>
 
-        {/* User Profile & Logout */}
-        {user ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-end',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '0.86rem',
-                  fontWeight: '600',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {user.name}
-              </span>
-              <span
-                style={{
-                  fontSize: '0.72rem',
-                  color: 'var(--text-muted)',
-                  textTransform: 'capitalize',
-                }}
-              >
-                {user.role === 'student' ? `Room ${user.roomNumber || 'N/A'}` : user.role}
-              </span>
+          {/* User pill */}
+          <div className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-[10px] bg-[var(--bg-subtle)] border border-[var(--border-subtle)]">
+            <div className="w-6 h-6 rounded-full bg-[var(--brand-teal)]/15 text-[var(--brand-teal)] flex items-center justify-center text-xs font-semibold">
+              <User className="w-3.5 h-3.5" />
             </div>
+            <div className="text-left">
+              <p className="text-xs font-medium text-[var(--text-primary)] leading-none">
+                {user?.name}
+              </p>
+              <p className="text-[10px] text-[var(--text-muted)] font-mono-numbers mt-0.5 leading-none capitalize">
+                {role === 'student' && user?.roomNumber
+                  ? `Room ${user.roomNumber}`
+                  : role === 'staff'
+                  ? user?.staffTrade || 'Technician'
+                  : 'Warden'}
+              </p>
+            </div>
+          </div>
 
-            <button
-              onClick={handleLogout}
-              className="btn btn-secondary btn-sm"
-              title="Sign Out"
-              style={{ padding: '8px 10px', borderRadius: 'var(--radius-md)' }}
-            >
-              <LogOut size={15} />
-            </button>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <Link to="/login" className="btn btn-sm btn-secondary">
-              Login
-            </Link>
-            <Link to="/register" className="btn btn-sm btn-primary">
-              Register
-            </Link>
-          </div>
-        )}
+          {/* Logout */}
+          <button
+            type="button"
+            onClick={logout}
+            title="Log out of session"
+            className="p-2 rounded-[8px] text-[var(--text-muted)] hover:text-[var(--priority-critical)] hover:bg-[var(--priority-critical-bg)] border border-transparent transition-colors cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </header>
   );
-};
+}
