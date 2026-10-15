@@ -47,6 +47,15 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // 6. Base Health Check Endpoints
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Hostel Complaint Tracker API is online and healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
+});
+
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,

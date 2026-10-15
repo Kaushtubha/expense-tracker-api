@@ -8,8 +8,8 @@ const PORT = process.env.PORT || 5001;
 // 1. Connect to Database
 connectDB();
 
-// 2. Start HTTP Server
-const server = app.listen(PORT, () => {
+// 2. Start HTTP Server on all interfaces (0.0.0.0)
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(
     `[Server] Hostel Complaint Tracker running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`
   );
