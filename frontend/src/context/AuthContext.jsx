@@ -16,13 +16,22 @@ export const AuthProvider = ({ children }) => {
     const verifyUser = async () => {
       const storedToken = localStorage.getItem('accessToken');
       if (storedToken) {
+        // If bypass mock token, keep the session active without network check
+        if (storedToken.startsWith('mock_token_')) {
+          setLoading(false);
+          return;
+        }
+
         try {
           const res = await api.get('/auth/me');
           setUser(res.data.user);
           localStorage.setItem('user', JSON.stringify(res.data.user));
         } catch (err) {
           console.warn('[AuthContext] Session expired or invalid:', err.message);
-          logout();
+          // If offline/network error, don't force logout if we have user
+          if (err.response?.status === 401) {
+            logout();
+          }
         }
       }
       setLoading(false);
@@ -40,7 +49,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
-    const { user: authUser, accessToken, refreshToken } = res.data;
+    const { user: authUser, accessToken, refreshToken } = res.data.data || res.data;
 
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
@@ -51,9 +60,69 @@ export const AuthProvider = ({ children }) => {
     return authUser;
   };
 
+  /**
+   * One-Click Instant Bypass for Review & Demo Testing
+   */
+  const bypassLogin = (targetRole = 'student') => {
+    let mockUser;
+    const normalized = targetRole.toLowerCase();
+
+    if (normalized === 'admin' || normalized === 'warden') {
+      mockUser = {
+        _id: 'mock-warden-001',
+        id: 'mock-warden-001',
+        name: 'Dr. R.K. Verma (Chief Warden)',
+        email: 'warden@hostel.edu',
+        role: 'admin',
+        phone: '9811002233',
+      };
+    } else if (normalized === 'staff' || normalized === 'electrician') {
+      mockUser = {
+        _id: 'mock-staff-001',
+        id: 'mock-staff-001',
+        name: 'Suresh Kumar',
+        email: 'electrician@hostel.edu',
+        role: 'staff',
+        staffTrade: 'Electrician',
+        phone: '9822003344',
+      };
+    } else if (normalized === 'plumber') {
+      mockUser = {
+        _id: 'mock-plumber-001',
+        id: 'mock-plumber-001',
+        name: 'Ramesh Patel',
+        email: 'plumber@hostel.edu',
+        role: 'staff',
+        staffTrade: 'Plumber',
+        phone: '9833004455',
+      };
+    } else {
+      mockUser = {
+        _id: 'mock-student-001',
+        id: 'mock-student-001',
+        name: 'Aarav Patel',
+        email: 'student1@hostel.edu',
+        role: 'student',
+        roomNumber: 'B-204',
+        phone: '9855001122',
+      };
+    }
+
+    const mockToken = `mock_token_${Date.now()}`;
+    const mockRefresh = `mock_refresh_${Date.now()}`;
+
+    localStorage.setItem('accessToken', mockToken);
+    localStorage.setItem('refreshToken', mockRefresh);
+    localStorage.setItem('user', JSON.stringify(mockUser));
+
+    setUser(mockUser);
+    setToken(mockToken);
+    return mockUser;
+  };
+
   const register = async (userData) => {
     const res = await api.post('/auth/register', userData);
-    const { user: authUser, accessToken, refreshToken } = res.data;
+    const { user: authUser, accessToken, refreshToken } = res.data.data || res.data;
 
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
@@ -67,7 +136,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     const refreshToken = localStorage.getItem('refreshToken');
     try {
-      if (refreshToken) {
+      if (refreshToken && !refreshToken.startsWith('mock_')) {
         await api.post('/auth/logout', { refreshToken });
       }
     } catch (err) {
@@ -89,6 +158,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user && !!token,
         loading,
         login,
+        bypassLogin,
         register,
         logout,
       }}
